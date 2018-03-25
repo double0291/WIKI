@@ -50,7 +50,7 @@ java 中每一个对象都可以作为锁，具体有3种形式：
 1. 共享内存
 2. 消息传递
 
-Java 并发采用的是共享内存模型。
+Java 并发采用的是**共享内存模型**。
 
 ###### 3.1.2 Java 内存模型的抽象结构
 java 中，所有实例域、静态域和数组元素都存储在堆内存中，堆内存在线程之间共享。    
@@ -109,13 +109,131 @@ class VolatileFeaturesExample {
 
 volatile 写的内存定义是：    
 **当写一个 volatile 变量时，JMM 会吧该线程对应的本地内存中的共享变量值刷新到主内存中。**    
-volatile 读的内存定义是：
+volatile 读的内存定义是：    
 **当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效。线程接下来将从主内存中读取共享变量。**
 
+#### 3.5 锁的内存语义
+线程获取锁时，JMM 会把该线程对应的本地内存置为无效，从而使被监视器保护的临界区代码必须从主内存中读取共享变量。
 
+#### 3.8 双重检查锁定与延迟初始化
+###### 3.8.1 双重检查锁定的由来
+```java
+public class UnsafeLazyInitialization {
+	private static Instance instance;
 
+	public static Instance getInstance() {
+		if (instance == null) 			// 1：A 线程执行
+			instance = new Instance();	// 2：B 线程执行
 
+		return instance;
+	}
+}
+```
 
+假设 A 线程执行代码 1 的同时，B 线程执行代码 2，就可能初始化两次。    
+针对这个，可以对 getInstance() 方法做同步处理来实现线程安全的延迟初始化。    
 
+```java
+public class SafeLazyInitialization{
+	private static Instance instance;
+
+	public synchronized static Instance getInstance() {
+		if (instance == null)
+			instance = new Instance();
+
+		return instance;
+	}
+}
+```
+
+synchronized 会导致内存开销。    
+如果 getInstance() 方法被多个线程频繁调用，将会导致程序执行性能的下降。反之，如果 getInstance() 方法不被多个线程频繁调用，这个方案还算令人满意。    
+早期的 JVM 中，synchronized存在巨大性能消耗，所以人们想出了**双重检查锁定**，通过它来降低同步的开销：
+
+```java
+public class DoubleCheckLazyInitialization{							// 1
+	private static Instance instance;								// 2
+
+	public static Instance getInstance() {							// 3
+		if (instance == null) {										// 4：第一次检查
+			synchronized (DoubleCheckLazyInitialization.class) { 	// 5：加锁
+				if (instance == null)								// 6：第二次检查
+					instance = new Instance();						// 7：问题根源
+			}														// 8
+		}															// 9
+
+		return instance;											// 10
+	}																// 11
+}
+```
+
+如果第一次检查 instance 非空，就不需要执行下面的加锁和初始化操作，可以大幅度降低 synchronized 带来的性能开销。    
+**但这是一个错误的优化！线程执行到第 4 行，代码读取到 instance 不为 null时，instance 引用的对象可能还没有完全初始化。**    
+###### 3.8.2 问题的根源
+上面代码的第7行（ instance = new Instance(); ）创建了一个对象。    
+这一行可以分解为3行伪代码。    
+
+```java
+memory = allocate();	// 1：分配对象的内存空间
+ctorIntance(memory);	// 2：初始化对象
+instance = memory;		// 3：设置 instance 指向刚分配的内存地址
+```
+
+而在一些编译器上面，上面伪代码的第 2 行和第 3 行可能会被重排，重拍后如下：
+
+```java
+memory = allocate();	// 1：分配对象的内存空间
+instance = memory;		// 3：设置 instance 指向刚分配的内存地址
+						// 注意，此时对象还没有被初始化！
+ctorIntance(memory);	// 2：初始化对象
+```
+
+根据重排规则，重排不改变单线程执行结果，上面的重排并没有违反规则。    
+这就导致线程 A 和线程 B 按次执行后，线程 B 可能看到一个没有被初始化的对象！
+
+###### 3.8.3 基于 volatile 的解决方案
+对于上面的双重检查锁定，只需要**把 instance 声明为 volatile 对象**，就可以线程安全的延迟初始化，因为声明为 volatile 后，上述的重排序会被禁止（注意，需要 JDK5 以上版本）：
+
+```java
+public class SafeDoubleCheckLazyInitialization{
+	private volatile static Instance instance;
+
+	public static Instance getInstance() {
+		if (instance == null) {
+			synchronized (DoubleCheckLazyInitialization.class) {
+				if (instance == null)
+					instance = new Instance();
+			}
+		}
+
+		return instance;
+	}
+}
+```
+
+###### 3.8.4 基于类初始化的解决方案
+JVM 会在类的初始化阶段（就是 Class 被加载后，且被多线程使用前），会执行类的初始化。    
+在执行类初始化期间，JVM 会去获取一个锁，这个锁可以同步多个线程对同一类的初始化。    
+基于这个特性，可以实现另一种线程安全的延迟初始化方案：
+
+```java
+public class InstanceFactory {
+	private static class InstanceLoader {
+		public static Instance instance = new Instance();
+	}
+
+	public static Instance getInstance() {
+		return InstanceLoader.instance;	// 这里将导致 InstanceLoader 类被初始化
+	}
+}
+```
+
+根据 Java 语言规范，首次发生下面任意一种情况，一个类或借口类型 T 将立即初始化。
+
+1. T 是一个类，而且一个 T 类型的实例被创建
+2. T 是一个类，且 T 中声明的静态方法被调用
+3. T 中声明的一个静态字段被赋值
+4. T 中声明的一个静态字段被使用，而且这个字段不是一个常量字段
+5. T 是一个顶级类，而且一个断言语句嵌套在 T 内部被执行
 
 
