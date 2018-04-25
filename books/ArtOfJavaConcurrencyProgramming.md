@@ -337,6 +337,61 @@ synchronized(对象) {
 ThreadLocal，即线程变量，是一个以 ThreadLocal 对象为键，任意对象为值的存储结构。    
 这个结构被附带到线程上，也就是说一个线程可以根据一个 ThreadLocal 对象查询到绑定在这个线程上的值。
 
+## 第五章 Java 中的锁
+#### 5.1 Lock 接口
+Lock 接口出现之前，Java 程序依靠 synchronized 关键字实现锁功能。    
+Java SE 5 之后，并发包中新增了 Lock 接口实现锁功能。    
+虽然不便捷，但其拥有多种 synchronized 关键字不具备的同步特性：
+
+- 锁获取和释放的可操作性
+- 可中断的获取锁
+- 超时获取锁
+
+Lock 的使用很简单：
+
+```java
+Lock lock = new ReentrantLock();
+lock.lock();
+try {
+
+} finally {
+	lock.unlock();
+}
+```
+
+**释放锁的过程写在 finally 里面，而不是 try 里面。**    
+Lock 接口的实现基本都是通过聚合了一个同步器的子类来完成线程访问控制的。
+
+## 第六章 Java 并发容器和框架
+#### 6.1 ConcurrentHashMap 的实现原理与使用
+
+###### 6.1.1 为什么使用 ConcurrentHashMap
+HashMap 在并发编程中可能导致死循环，而使用线程安全的 HashTable 效率又底下，所有有了 ConcurrentHashMap。    
+**ConcurrentHashMap 使用锁分段技术：首先将数据分成一段一段存储，然后每一段数据配一把锁，当一个线程占用锁访问其中一段数据时，其他段数据也能被其他线程访问。**    
+
+
+#### 6.2 ConcurrentLinkedQueue
+ConcurrentLinkedQueue 是一个基于链接节点的无界限线程安全队列。
+
+#### 6.3 Java 中的阻塞队列
+阻塞队列（BlockingQueue）是一个支持两个附加操作的队列，这两个附加的操作支持阻塞的插入和移除方法：
+
+1. 支持阻塞的插入方法：当队列满的时候，队列会阻塞插入元素的线程，直到队列不满。
+2. 支持阻塞的移除方法：当队列为空时，获取元素的线程会等待队列变为非空。
+
+阻塞队列经常用于生产者和消费者的场景。
+
+#### 6.4 Fork/Join 框架
+Fork 就是把一个大任务切分成若干子任务并行的执行。    
+Join就是合并这些子任务的执行结果，最后得到这个大任务的结果。    
+
+
+## 第七章 Java 中的13个原子操作类
+
+
+## 第八章 Java 中的并发工具类
+
+
 
 
 
