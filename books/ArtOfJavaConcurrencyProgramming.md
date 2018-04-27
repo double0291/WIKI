@@ -390,8 +390,15 @@ Join就是合并这些子任务的执行结果，最后得到这个大任务的�
 
 
 ## 第八章 Java 中的并发工具类
+#### 8.1 等待多线程完成的 CountDownLatch
+CountDownLatch 允许一个或多个线程等待其他线程完成操作。
 
+#### 8.2 同步屏障 CyclicBarrier
+CyclicBarrier 字面意思是“可循环”的“屏障”，它做的事情是让一组线程到达一个屏障（也可以叫同步点）时被阻塞，直到最后一个线程到达屏障时，屏障才会开门，所有被屏障拦截的线程才会继续运行。
 
+###### 8.2.1 CyclicBarrier 与 CountDownLatch 的区别
+CountDownLatch 计数器只能使用一次，而 CyclicBarrier 的计数器可以使用 set() 方法重置。    
+所以 CyclicBarrier 能处理更为复杂的业务场景，比如计算发生错误，可以重置再执行。
 
 
 
