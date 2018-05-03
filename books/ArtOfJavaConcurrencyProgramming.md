@@ -151,19 +151,19 @@ synchronized 会导致内存开销。
 早期的 JVM 中，synchronized存在巨大性能消耗，所以人们想出了**双重检查锁定**，通过它来降低同步的开销：
 
 ```java
-public class DoubleCheckLazyInitialization{							// 1
-	private static Instance instance;								// 2
+public class DoubleCheckLazyInitialization{                         // 1
+	private static Instance instance;                               // 2
 
-	public static Instance getInstance() {							// 3
-		if (instance == null) {										// 4：第一次检查
-			synchronized (DoubleCheckLazyInitialization.class) { 	// 5：加锁
-				if (instance == null)								// 6：第二次检查
-					instance = new Instance();						// 7：问题根源
-			}														// 8
-		}															// 9
+	public static Instance getInstance() {                          // 3
+		if (instance == null) {	                                    // 4：第一次检查
+			synchronized (DoubleCheckLazyInitialization.class) {    // 5：加锁
+				if (instance == null)                               // 6：第二次检查
+					instance = new Instance();                      // 7：问题根源
+			}                                                       // 8
+		}                                                           // 9
 
-		return instance;											// 10
-	}																// 11
+		return instance;                                            // 10
+	}                                                               // 11
 }
 ```
 
@@ -174,18 +174,18 @@ public class DoubleCheckLazyInitialization{							// 1
 这一行可以分解为3行伪代码。    
 
 ```java
-memory = allocate();	// 1：分配对象的内存空间
-ctorIntance(memory);	// 2：初始化对象
-instance = memory;		// 3：设置 instance 指向刚分配的内存地址
+memory = allocate();    // 1：分配对象的内存空间
+ctorIntance(memory);    // 2：初始化对象
+instance = memory;      // 3：设置 instance 指向刚分配的内存地址
 ```
 
 而在一些编译器上面，上面伪代码的第 2 行和第 3 行可能会被重排，重拍后如下：
 
 ```java
-memory = allocate();	// 1：分配对象的内存空间
-instance = memory;		// 3：设置 instance 指向刚分配的内存地址
-						// 注意，此时对象还没有被初始化！
-ctorIntance(memory);	// 2：初始化对象
+memory = allocate();    // 1：分配对象的内存空间
+instance = memory;      // 3：设置 instance 指向刚分配的内存地址
+                        // 注意，此时对象还没有被初始化！
+ctorIntance(memory);    // 2：初始化对象
 ```
 
 根据重排规则，重排不改变单线程执行结果，上面的重排并没有违反规则。    
