@@ -108,7 +108,7 @@ class VolatileFeaturesExample {
 
 
 volatile 写的内存定义是：    
-**当写一个 volatile 变量时，JMM 会把该线程对应的本地内存中的共享变量值刷新到主内存中。**    
+**当写一个 volatile 变量时，JMM 会把该线程对应的本地内存中的共享变量值刷新到主内存中。**     
 volatile 读的内存定义是：    
 **当读一个volatile变量时，JMM会把该线程对应的本地内存置为无效。线程接下来将从主内存中读取共享变量。**
 
