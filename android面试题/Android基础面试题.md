@@ -45,17 +45,17 @@ EventBus 的缺点是在 Subscriber 注册的时候，Subscriber 中的方法会
 - ViewStub: 按需加载，减少内存使用量、加快渲染速度。**不支持 merge 标签**
 
 # Activity 启动模式
-## standard
+#### standard
 新建 Activity 实例。   
  
 - **Android 5.0 以前**，新建的 Activity 会放在同一个 task 下 Activity 栈的顶部，哪怕前后两个 Activity 是来自不同的应用。
 - **Android 5.0 以后**，如果两个 Activity 来自不同的应用，就会新建一个 task，**这是因为 android 5.0 以后的 task 管理器有修改以更直观有效**。
 
-## singleTop
+#### singleTop
 - 如果 Activity 不在栈顶，可以无限创建Activity。    
 - 如果 Activity 实例已经在栈顶了，那么就不会创建新的 Activity 实例，而是会将 intent 传入已有的 Activity 的实例的 *onNewIntent()* 方法。
 
-## singeTask
+#### singeTask
 **只允许一个Activity实例**。  
 
 1. 同一个应用：  
@@ -65,7 +65,7 @@ EventBus 的缺点是在 Subscriber 注册的时候，Subscriber 中的方法会
   - 系统中没有 Activity，创建新 task。
   - 系统中有一个 task 有那个 Activity，切到那个 task，同时销毁上面的 Activity，**如果用户按了返回键，就会回到唤起 Activity 的 task。**
 
-## singeInstance
+#### singeInstance
 类似 singleTask。    
 新建这个 Activity 的时候，就会创建一个新的task。
 这种模式很少用。
@@ -101,6 +101,18 @@ LRU 是“Least Recently Used”的缩写，就是最近最少使用。
 LRU 缓存把最近最少使用的数据移除，让给最新读取的数据。    
 LRU 缓存用到的数据结构就是 **LinkedHashMap**。    
 **LruCache中维护了一个集合LinkedHashMap，该LinkedHashMap是以访问顺序排序的。当调用put()方法时，就会在结合中添加元素，并调用trimToSize()判断缓存是否已满，如果满了就用LinkedHashMap的迭代器删除队尾元素，即近期最少访问的元素。当调用get()方法访问缓存对象时，就会调用LinkedHashMap的get()方法获得对应集合元素，同时会更新该元素到队头。**
+
+# Android中软引用与弱引用的应用场景
+#### 分类
+- 强引用：不回收
+- 软引用（SoftReference）：内存空间不足就会去回收
+- 弱引用（WeakReference）：一旦发现，不论内存足不足，都会回收
+- 虚引用
+
+#### 使用场景
+**在处理一些占用内存大而且声明周期较长的对象时候，可以尽量应用软引用和弱引用技术**。    
+如果只是想避免 OOM 异常的发生，则可以使用软引用。如果对于应用的性能更在意，想尽快回收一些占用内存比较大的对象，则可以使用弱引用。    
+可以根据对象是否经常使用来判断选择软引用还是弱引用。如果该对象可能会经常使用的，就尽量用软引用。如果该对象不被使用的可能性更大些，就可以用弱引用。
 
 # Android 版本新特征
 - 5.0:
