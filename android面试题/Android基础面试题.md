@@ -1,4 +1,4 @@
-Android 常规面试题
+Android 基础面试题
 ================
 # Activity 启动模式
 ## standard
