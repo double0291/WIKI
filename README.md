@@ -10,3 +10,4 @@ Android 面试题：
 读书笔记：
 
 - [《JAVA并发编程的艺术》](https://github.com/double0291/WIKI/blob/master/books/《JAVA并发编程的艺术》.md)
+- [《EffectiveJava》](https://github.com/double0291/WIKI/blob/master/books/《EffectiveJava》.md)
