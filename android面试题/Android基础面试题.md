@@ -36,7 +36,7 @@ EventBus 的缺点是在 Subscriber 注册的时候，Subscriber 中的方法会
 创建或打开一个现有数据库，返回一个可对数据库进行读写操作的对象。    
 当数据库不可写入的时候 **getReadableDatabase()** 以只读的方式返回数据库对象，**getWritableDatabase()** 返回异常。
 
-# include、merge、stub 三种使用场景
+# include、merge、ViewStub 三种使用场景
 - include：解决重复定义相同布局的问题。
  - xml1 中 include 了 xml2 并给其设定 id1，以 id1 为准
  - xml1 没有给 xml2 设定id，以 xml2 的根目录 id2 为准
