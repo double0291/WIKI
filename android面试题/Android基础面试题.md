@@ -114,6 +114,24 @@ LRU 缓存用到的数据结构就是 **LinkedHashMap**。
 如果只是想避免 OOM 异常的发生，则可以使用软引用。如果对于应用的性能更在意，想尽快回收一些占用内存比较大的对象，则可以使用弱引用。    
 可以根据对象是否经常使用来判断选择软引用还是弱引用。如果该对象可能会经常使用的，就尽量用软引用。如果该对象不被使用的可能性更大些，就可以用弱引用。
 
+# Service 保活
+### 在 onStartCommond() 中将返回值设置为 START_STICKY
+在运行 onStartCommand 后 service 进程被 kill 后，那将保留在开始状态，但是不保留那些传入的 intent。    
+不久后 service 就会再次尝试重新创建，因为保留在开始状态，在创建 service 后将保证调用 onstartCommand。如果没有传递任何开始命令给 service，那将获取到 null 的 intent。    
+**【亲测】**：手动返回 START_STICKY，当 service 因内存不足被 kill，当内存又有的时候，service 又被重新创建，比较不错，但是不能保证任何情况下都被重建，比如进程被干掉
+
+### onDestroy 方法里重启 service
+直接在 onDestroy（）里 startService 或 service + broadcast 方式，就是当 service 走 onDestory 的时候，发送一个自定义的广播，当收到广播的时候，重新启动 service。    
+**【亲测】**：当使用类似 QQ 管家等第三方应用或是在 setting -应用-强制停止时，APP 进程可能就直接被干掉了，onDestroy 方法都进不来，所以还是无法保证
+
+### 启动前台 service，提升 service 优先级
+在 AndroidManifest.xml 文件中对于 intent-filter 可以通过android:priority = "1000" 这个属性设置最高优先级，1000 是最高值，如果数字越小则优先级越低，同时适用于广播。
+
+### 单独起一个 Service 进程，提高该进程优先级
+
+### 黑色保活：不同 app 进程利用广播相互唤起
+
+
 # Android 版本新特征
 - 5.0:
  1. Material Design
