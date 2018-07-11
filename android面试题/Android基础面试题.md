@@ -36,6 +36,11 @@ EventBus 的缺点是在 Subscriber 注册的时候，Subscriber 中的方法会
 创建或打开一个现有数据库，返回一个可对数据库进行读写操作的对象。    
 当数据库不可写入的时候 **getReadableDatabase()** 以只读的方式返回数据库对象，**getWritableDatabase()** 返回异常。
 
+# Thread、AsyncTask、IntentService的使用场景与特点
+- Thread线程，独立运行与于 Activity 的，当 Activity 被 finish 后，如果没有主动停止 Thread 或者 run 方法没有执行完，其会一直执行下去。
+- AsyncTask 封装了两个线程池和一个 Handler，（SerialExecutor 用于排队，THREAD_POOL_EXECUTOR 为真正的执行任务，Handler 将工作线程切换到主线程），其必须在 UI 线程中创建，execute 方法必须在 UI 线程中执行，一个任务实例只允许执行一次，执行多次将抛出异常，用于网络请求或者简单数据处理。
+- IntentService：处理异步请求，实现多线程，在 onHandleIntent 中处理耗时操作，多个耗时任务会依次执行，执行完毕后自动结束。
+
 # include、merge、ViewStub 三种使用场景
 - include：解决重复定义相同布局的问题。
  - xml1 中 include 了 xml2 并给其设定 id1，以 id1 为准
@@ -43,6 +48,23 @@ EventBus 的缺点是在 Subscriber 注册的时候，Subscriber 中的方法会
 - Merge: 帮助 include 减少视图层级，可以删除多余的层级，优化 UI。    
   include 标签的 parent ViewGroup 与包含的 layout 根容器 ViewGroup 是相同的类型，那么则可以将包含的 layout 根容器 ViewGroup 使用 merge 标签代替，从而减少一层 ViewGroup 的嵌套，从而提升 UI 性能渲染。
 - ViewStub: 按需加载，减少内存使用量、加快渲染速度。**不支持 merge 标签**
+
+# LinearLayout 和 RelativeLayout 的对比
+- RelativeLayout 会让子 View 调用2次 onMeasure，LinearLayout 在有 weight 时，也会调用子 View 的2次 onMeasure。
+- RelativeLayout 的子 View 如果高度和 RelativeLayout 不同，则会引发效率问题，当子 View 很复杂时，这个问题会更加严重。如果可以，尽量使用 padding 代替 margin。
+- 在不影响层级深度的情况下,使用 LinearLayout 和 FrameLayout 而不是 RelativeLayout。
+
+# invalidate 和 requestLayout 的区别
+- 调用 invalidate 只会执行 *onDraw()* 方法
+- 调用 requestLayout 会执行 *onMeasure()* 方法和 *onLayout()* 方法，会根据标志位判断是否需要 *onDraw()*。
+
+所以当我们进行 View 更新时，若仅 View 的显示内容发生改变且新显示内容不影响 View 的大小、位置，则只需调用 invalidate 方法。    
+若 View 宽高、位置发生改变，需调用 requestLayout 方法。    
+内容、大小、位置都变化时，就同时调用 requestLayout 和 invalidate。
+
+# invalidate 和 postInvalidate 的区别
+- invalidate 方法是 View 内部的，只能用于UI线程中。
+- postInvalidate 会将更新消息发送到 ViewRootImpl 中的  ViewRootHandler 中去更新UI。在非UI线程中，使用 postInvalidate 方法可以省去使用 handler 的烦恼。
 
 # Activity 启动模式
 #### standard
@@ -131,6 +153,11 @@ LRU 缓存用到的数据结构就是 **LinkedHashMap**。
 
 ### 黑色保活：不同 app 进程利用广播相互唤起
 
+# Android长连接，怎么处理心跳机制
+- 长连接：长连接是建立连接之后, 不主动断开. 双方互相发送数据, 发完了也不主动断开连接, 之后有需要发送的数据就继续通过这个连接发送。
+- 心跳包：其实主要是为了防止 NAT 超时，客户端隔一段时间就主动发一个数据，探测连接是否断开。
+- 服务器处理心跳包：假如客户端心跳间隔是固定的, 那么服务器在连接闲置超过这个时间还没收到心跳时, 可以认为对方掉线, 关闭连接. 如果客户端心跳会动态改变,  应当设置一个最大值, 超过这个最大值才认为对方掉线. 还有一种情况就是服务器通过 TCP 连接主动给客户端发消息出现写超时, 可以直接认为对方掉线。
+- [Android微信智能心跳方案](https://mp.weixin.qq.com/s?__biz=MzAwNDY1ODY2OQ==&amp;mid=207243549&amp;idx=1&amp;sn=4ebe4beb8123f1b5ab58810ac8bc5994&amp;scene=21#wechat_redirect)
 
 # Android 版本新特征
 - 5.0:
