@@ -102,6 +102,7 @@ MessageQueue 的 next() 方法会将这条消息传给 Looper。
 Looper 又将消息交给 Handler 处理，即 Handler 的 dispatchMessage()。    
 所以使用的核心是**在当前线程创建一个跟 Looper 绑定的 Handler，然后把这个 Handler 暴露给别的线程**。    
 简单来说，**要给谁发消息，就要用谁的Handler。**
+通过 Handler.sendXXX 和 Hanler.postXXX 添加到 MessageQueue 的 Message，会在这个对应的线程的 Looper.loop() 里取出来，并就地执行 Handler.dispatchMessage，这就可以完成**线程切换**了。
 
 # Android中为什么主线程不会因为 Looper.loop() 里的死循环卡死？
 主线程的 MessageQueue 没有消息时，便阻塞在 loop 的 queue.next() 中的 nativePollOnce() 方法里。
