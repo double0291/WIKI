@@ -36,6 +36,11 @@ EventBus 的缺点是在 Subscriber 注册的时候，Subscriber 中的方法会
 创建或打开一个现有数据库，返回一个可对数据库进行读写操作的对象。    
 当数据库不可写入的时候 **getReadableDatabase()** 以只读的方式返回数据库对象，**getWritableDatabase()** 返回异常。
 
+# LinearLayout 和 RelativeLayout 的对比
+- RelativeLayout 会让子 View 调用2次 onMeasure，LinearLayout 在有 weight 时，也会调用子 View 的2次 onMeasure。
+- RelativeLayout 的子 View 如果高度和 RelativeLayout 不同，则会引发效率问题，当子 View 很复杂时，这个问题会更加严重。如果可以，尽量使用 padding 代替 margin。
+- 在不影响层级深度的情况下,使用 LinearLayout 和 FrameLayout 而不是 RelativeLayout。
+
 # Thread、AsyncTask、IntentService的使用场景与特点
 - Thread线程，独立运行与于 Activity 的，当 Activity 被 finish 后，如果没有主动停止 Thread 或者 run 方法没有执行完，其会一直执行下去。
 - AsyncTask 封装了两个线程池和一个 Handler，（SerialExecutor 用于排队，THREAD_POOL_EXECUTOR 为真正的执行任务，Handler 将工作线程切换到主线程），其必须在 UI 线程中创建，execute 方法必须在 UI 线程中执行，一个任务实例只允许执行一次，执行多次将抛出异常，用于网络请求或者简单数据处理。
@@ -48,11 +53,6 @@ EventBus 的缺点是在 Subscriber 注册的时候，Subscriber 中的方法会
 - Merge: 帮助 include 减少视图层级，可以删除多余的层级，优化 UI。    
   include 标签的 parent ViewGroup 与包含的 layout 根容器 ViewGroup 是相同的类型，那么则可以将包含的 layout 根容器 ViewGroup 使用 merge 标签代替，从而减少一层 ViewGroup 的嵌套，从而提升 UI 性能渲染。
 - ViewStub: 按需加载，减少内存使用量、加快渲染速度。**不支持 merge 标签**
-
-# LinearLayout 和 RelativeLayout 的对比
-- RelativeLayout 会让子 View 调用2次 onMeasure，LinearLayout 在有 weight 时，也会调用子 View 的2次 onMeasure。
-- RelativeLayout 的子 View 如果高度和 RelativeLayout 不同，则会引发效率问题，当子 View 很复杂时，这个问题会更加严重。如果可以，尽量使用 padding 代替 margin。
-- 在不影响层级深度的情况下,使用 LinearLayout 和 FrameLayout 而不是 RelativeLayout。
 
 # invalidate 和 requestLayout 的区别
 - 调用 invalidate 只会执行 *onDraw()* 方法
@@ -124,7 +124,35 @@ LRU 缓存把最近最少使用的数据移除，让给最新读取的数据。
 LRU 缓存用到的数据结构就是 **LinkedHashMap**。    
 **LruCache中维护了一个集合LinkedHashMap，该LinkedHashMap是以访问顺序排序的。当调用put()方法时，就会在结合中添加元素，并调用trimToSize()判断缓存是否已满，如果满了就用LinkedHashMap的迭代器删除队尾元素，即近期最少访问的元素。当调用get()方法访问缓存对象时，就会调用LinkedHashMap的get()方法获得对应集合元素，同时会更新该元素到队头。**
 
-# Android中软引用与弱引用的应用场景
+# HttpURLConnection 和 HttpClient 比较
+- 在 Android 2.2 版本之前，HttpClient 拥有较少的 bug；而在Android 2.3版本及以后，HttpURLConnection则是最佳的选择，它 API 简单，体积较小。
+-  Apache HttpClient 早就不推荐 httpclient，5.0 之后干脆废弃，6.0 删除了 HttpClient。
+-  在 Android 2.2 版本之前，HttpURLConnection 一直存在着一些令人厌烦的 bug。比如说对一个可读的 InputStream 调用 close() 方法时，就有可能会导致连接池失效了。那么我们通常的解决办法就是直接禁用掉连接池的功能。
+-  Android4.4 的源码中可以看到 HttpURLConnection 已经替换成 OkHttp 实现。
+
+# OkHttp 的优点
+- Android4.4 的源码中可以看到 HttpURLConnection 已经替换成 OkHttp 实现。
+- Volley停止了更新，而OkHttp得到了官方的认可，并在不断优化。
+- OkHttp 是一个现代，快速，高效的 Http client，支持 HTTP/2、SPDY、连接池、GZIP 和 HTTP 缓存。
+- OkHttp 实现的诸多技术如：连接池，gziping，缓存等就知道网络相关的操作是多么复杂了。
+- OkHttp 扮演着传输层的角色。
+- OkHttp 使用 Okio 来大大简化数据的访问与存储，Okio 是一个增强 java.io 和 java.nio 的库。
+- OkHttp 处理了很多网络疑难杂症：会从很多常用的连接问题中自动恢复。如果您的服务器配置了多个 IP 地址，当第一个 IP 连接失败的时候，OkHttp 会自动尝试下一个 IP。
+- OkHttp 还处理了代理服务器问题、二次连接和 SSL 握手失败问题。
+- OkHttp 是一个 Java 的 HTTP+SPDY 客户端开发包，同时也支持 Android。需要 Android 2.3 以上。
+- 目前支持的功能：
+ * 一般的get请求
+ * 一般的post请求
+ * 基于Http的文件上传
+ * 文件下载
+ * 上传下载的进度回调
+ * 加载图片
+ * 支持请求回调，直接返回对象、对象集合
+ * 支持session的保持
+ * 支持自签名网站https的访问，提供方法设置下证书就行
+ * 支持取消某个请求
+
+# Android 中软引用与弱引用的应用场景
 #### 分类
 - 强引用：不回收
 - 软引用（SoftReference）：内存空间不足就会去回收
@@ -157,7 +185,7 @@ LRU 缓存用到的数据结构就是 **LinkedHashMap**。
 - 场景2：接入第三方SDK也会唤醒相应的app进程，如微信sdk会唤醒微信，支付宝sdk会唤醒支付宝。由此发散开去，就会直接触发了下面的 场景3
 - 场景3：假如你手机里装了支付宝、淘宝、天猫、UC等阿里系的app，那么你打开任意一个阿里系的app后，有可能就顺便把其他阿里系的app给唤醒了。（只是拿阿里打个比方，其实BAT系都差不多）
 
-# Android长连接，怎么处理心跳机制
+# Android 长连接，怎么处理心跳机制
 - 长连接：长连接是建立连接之后, 不主动断开. 双方互相发送数据, 发完了也不主动断开连接, 之后有需要发送的数据就继续通过这个连接发送。
 - 心跳包：其实主要是为了防止 NAT 超时，客户端隔一段时间就主动发一个数据，探测连接是否断开。
 - 服务器处理心跳包：假如客户端心跳间隔是固定的, 那么服务器在连接闲置超过这个时间还没收到心跳时, 可以认为对方掉线, 关闭连接. 如果客户端心跳会动态改变,  应当设置一个最大值, 超过这个最大值才认为对方掉线. 还有一种情况就是服务器通过 TCP 连接主动给客户端发消息出现写超时, 可以直接认为对方掉线。
