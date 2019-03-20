@@ -130,6 +130,16 @@ LRU 缓存用到的数据结构就是 **LinkedHashMap**。
 -  在 Android 2.2 版本之前，HttpURLConnection 一直存在着一些令人厌烦的 bug。比如说对一个可读的 InputStream 调用 close() 方法时，就有可能会导致连接池失效了。那么我们通常的解决办法就是直接禁用掉连接池的功能。
 -  Android4.4 的源码中可以看到 HttpURLConnection 已经替换成 OkHttp 实现。
 
+# ListView 与 RecyclerView 缓存机制浅析
+原理大致相似，离屏的 ItemView 被回收至缓存，入屏的 ItemView 则会优先从缓存中获取。区别：    
+
+1. RecyclerView 比 ListView 多两级缓存，支持多离屏 ItemView 缓存，支持开发者自定义缓存处理逻辑，支持所有 RecyclerView 共用一个缓存池（RecyclerViewPool），可以用在“ViewPager + 多列表页”的场景下。
+2. RecyclerView 从 mCacheViews(屏幕外)获取缓存时，是通过匹配 pos 获取目标位置的缓存，这样做的好处是，当数据源数据不变的情况下，无须重新 bindView；而ListView 从 mScrapViews 根据 pos 获取相应的缓存，但是并没有直接使用，而是重新getView（即必定会重新 bindView ）。ListView 中通过 pos 获取的是 view；RecyclerView 中通过 pos 获取的是 viewholder。
+3. RecyclerView 支持局部刷新，避免过多无用的 bindView。数据源改变时，ListView 是“一锅端”，将所有的 mActiveViews 都移入了二级缓存 mScrapViews，而RecyclerView 则是更加灵活地对每个 View 修改标志位，区分是否重新 bindView。
+
+**列表页展示界面，需要支持动画，或者频繁更新，局部刷新，建议使用 RecyclerView，更加强大完善，易扩展；其它情况(如微信卡包列表页)两者都可以，但 ListView 在使用上会更加方便快捷。**
+
+
 # OkHttp 的优点
 - Android4.4 的源码中可以看到 HttpURLConnection 已经替换成 OkHttp 实现。
 - Volley停止了更新，而OkHttp得到了官方的认可，并在不断优化。
