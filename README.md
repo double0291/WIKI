@@ -13,3 +13,4 @@ Android 面试题：
 - [《JAVA并发编程的艺术》](https://github.com/double0291/WIKI/blob/master/books/《JAVA并发编程的艺术》.md)
 - [《EffectiveJava》](https://github.com/double0291/WIKI/blob/master/books/《EffectiveJava》.md)
 - [《图解HTTP》](https://github.com/double0291/WIKI/blob/master/books/《图解HTTP》.md)
+- [《人月神话》](https://github.com/double0291/WIKI/blob/master/books/《人月神话》.md)
