@@ -14,3 +14,4 @@ Android 面试题：
 - [《EffectiveJava》](https://github.com/double0291/WIKI/blob/master/books/《EffectiveJava》.md)
 - [《图解HTTP》](https://github.com/double0291/WIKI/blob/master/books/《图解HTTP》.md)
 - [《人月神话》](https://github.com/double0291/WIKI/blob/master/books/《人月神话》.md)
+- [《架构修炼之道》](https://github.com/double0291/WIKI/blob/master/服务端/《架构修炼之道》.md)
